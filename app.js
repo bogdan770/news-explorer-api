@@ -42,7 +42,7 @@ app.get('/crash-test', () => {
 app.use('/', routes);
 
 app.get('*', (req, res) => {
-  res.status(404).send({ message: 'Requested resource not found' });
+  res.status(404).send({ message: 'Requested resource not FOund' });
 });
 
 app.use(errorLogger);
