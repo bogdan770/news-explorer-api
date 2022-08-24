@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
+const auth = require('../middleware/auth');
 
 const {
   showArticles,
@@ -7,10 +8,10 @@ const {
   deleteActicle,
 } = require('../controllers/articles');
 
-router.get('/', showArticles);
+router.get('/articles', auth, showArticles);
 
 router.post(
-  '/',
+  '/articles',
   celebrate({
     headers: Joi.object()
       .keys({
@@ -27,10 +28,11 @@ router.post(
       image: Joi.string().required().uri(),
     }),
   }),
+  auth,
   createArticle,
 );
 router.delete(
-  '/:articleId',
+  '/articles/:articleId',
   celebrate({
     params: Joi.object().keys({
       articleId: Joi.string().length(24).alphanum().required(),
@@ -41,6 +43,8 @@ router.delete(
       })
       .unknown(true),
   }),
+
+  auth,
   deleteActicle,
 );
 

@@ -50,10 +50,10 @@ const showArticles = (req, res, next) => {
 
 const deleteActicle = (req, res) => {
   const articleId = req.params.id;
-  Article.findById(articleId)
+  Article.deleteOne(articleId)
     .orFail(DocumentNotFoundError)
     .then((article) => {
-      if (!article.owner === req.user._id) { res.status(200).send({ message: 'card has been deleted successfully' }); }
+      if (!article.owner === req.user._id.toStrind()) { res.status(200).send({ message: 'card has been deleted successfully' }); }
     })
 
     .catch((err) => {

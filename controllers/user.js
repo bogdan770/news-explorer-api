@@ -53,12 +53,17 @@ const login = (req, res, next) => {
     .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
-        NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
+        NODE_ENV === 'production' ? JWT_SECRET : 'super-strong-secret',
         {
           expiresIn: '7d',
         },
       );
-      res.send({ data: user.toJSON(), token });
+      res.cookie('jwt', token, {
+        maxAge: 360000 * 24 * 7,
+        httpOnly: true,
+        sameSite: true,
+      })
+        .send({ data: user.toJSON(), token });
     })
     .catch(() => next(
       new MiddlewareError('Incorrect email or password', BAD_METHOD),

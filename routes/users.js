@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 const { getUser } = require('../controllers/user');
+const auth = require('../middleware/auth');
 
 router.get(
   '/users/me',
@@ -11,6 +12,8 @@ router.get(
       })
       .unknown(true),
   }),
+
+  auth,
   getUser,
 );
 
