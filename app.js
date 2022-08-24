@@ -7,7 +7,7 @@ const cors = require('cors');
 const { errors } = require('celebrate');
 const { requestLogger, errorLogger } = require('./logs/loggers');
 const routes = require('./routes/index');
-const limiter = require('./middleware/rateLimiter');
+const limiter = require('./middleware/limiter');
 
 dotenv.config();
 
