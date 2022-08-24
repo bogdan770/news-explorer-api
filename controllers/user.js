@@ -1,21 +1,19 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/user');
-const MiddlewareError = require('../middleware/middlewareError');
+const NotFoundError = require('../errors/notFoundError');
+const ConflictError = require('../errors/conflictError');
+const BadReqError = require('../errors/badReqError');
+const AuthError = require('../errors/authError');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 const OK = 200;
-// const BAD_REQUEST = 400;
-const BAD_METHOD = 401;
-const NOT_FOUND = 404;
-const CONFLICT = 409;
-const SERVER_ERROR = 500;
 
 const getUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(() => {
-      throw new MiddlewareError('User with this ID was found', NOT_FOUND);
+      throw new NotFoundError('User with this ID was not found');
     })
     .then((user) => {
       if (user) {
@@ -39,12 +37,12 @@ const createUser = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'MongoServerError' && err.code === 11000) {
-        return next(new MiddlewareError('User already exists', CONFLICT));
+        throw new ConflictError('User already exists');
+      } else if (err.name === 'ValidationError') {
+        throw new BadReqError('Email and Password are required');
       }
-      next(new MiddlewareError('An internal program error has occured', SERVER_ERROR));
-
-      return next(err);
-    });
+    })
+    .catch(next);
 };
 
 const login = (req, res, next) => {
@@ -63,11 +61,14 @@ const login = (req, res, next) => {
         httpOnly: true,
         sameSite: true,
       })
-        .send({ data: user.toJSON(), token });
+        .send({ token });
     })
-    .catch(() => next(
-      new MiddlewareError('Incorrect email or password', BAD_METHOD),
-    ));
+    .catch((err) => {
+      if (err.name === 'Error') {
+        throw new AuthError(`${err.message}`);
+      }
+    })
+    .catch(next);
 };
 
 module.exports = { getUser, createUser, login };
