@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
+const bcrypt = require('bcryptjs');
+const MiddlewareError = require('../middleware/middlewareError');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -24,5 +26,25 @@ const userSchema = new mongoose.Schema({
     default: 'Bogdan',
   },
 });
+
+userSchema.statics.findUserByCredentials = function findUserByCredentials(
+  email,
+  password,
+) {
+  return this.findOne({ email })
+    .select('+password')
+    .then((user) => {
+      if (!user) {
+        throw new MiddlewareError('Incorrect email or password', 401);
+      }
+
+      return bcrypt.compare(password, user.password).then((matched) => {
+        if (!matched) {
+          throw new MiddlewareError('Incorrect email or password', 401);
+        }
+        return user;
+      });
+    });
+};
 
 module.exports = mongoose.model('user', userSchema);
